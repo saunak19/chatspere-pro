@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join ChatterBox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00ffff',
+                        secondary: '#0080ff',
+                        accent: '#00bfff',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #121212;
+            min-height: 100vh;
+        }
+
+        .glow {
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .input-glow:focus {
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+    </style>
+</head>
+
+<body class="flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <div class="bg-gray-900 rounded-xl shadow-2xl overflow-hidden p-8 space-y-6 border border-gray-800">
+            <div class="text-center">
+                <div class="flex justify-center mb-4">
+                    <div class="bg-gradient-to-r from-primary to-accent p-3 rounded-full glow">
+                        <i data-feather="message-circle" class="text-white w-8 h-8"></i>
+                    </div>
+                </div>
+                <h1 class="text-3xl font-bold text-white">Welcome to ChatterBox</h1>
+                <p class="text-gray-400 mt-2">Enter your name to start chatting</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <div class="relative">
+                        <input id="username" type="text" placeholder="Your awesome name"
+                            class="w-full px-4 py-3 rounded-lg border border-gray-700 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent input-glow transition-all"
+                            autocomplete="off">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                            <i data-feather="user" class="text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="login()"
+                    class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all transform hover:scale-[1.01] glow focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500">
+                    Join the Conversation
+                </button>
+            </div>
+            <div class="text-center text-sm text-gray-400">
+                <p>By joining, you agree to our <a href="#" class="text-cyan-500 hover:underline">Community
+                        Guidelines</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function login() {
+            const username = document.getElementById("username").value.trim();
+            if (!username) {
+                const input = document.getElementById("username");
+                input.style.borderColor = "#ef4444";
+                input.placeholder = "Please enter a name first!";
+                input.classList.add("animate-pulse");
+                setTimeout(() => {
+                    input.style.borderColor = "";
+                    input.placeholder = "Your awesome name";
+                    input.classList.remove("animate-pulse");
+                }, 1000);
+                return;
+            }
+
+            // Save username in session storage
+            sessionStorage.setItem("username", username);
+
+            // Show loading animation
+            const button = document.querySelector('button');
+            button.innerHTML = `
+                <div class="flex items-center justify-center space-x-2">
+                <div class="w-4 h-4 rounded-full bg-cyan-500 animate-bounce" style="animation-delay: -0.3s"></div>
+                <div class="w-4 h-4 rounded-full bg-cyan-500 animate-bounce" style="animation-delay: -0.15s"></div>
+                <div class="w-4 h-4 rounded-full bg-cyan-500 animate-bounce"></div>
+</div>
+            `;
+            button.disabled = true;
+
+            // Simulate loading before redirect
+            setTimeout(() => {
+                window.location.href = "chat.html";
+            }, 1500);
+        }
+
+        // Feather icons
+        document.addEventListener('DOMContentLoaded', function () {
+            feather.replace();
+
+            // Auto-focus input
+            document.getElementById("username").focus();
+
+            // Enter key support
+            document.getElementById("username").addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

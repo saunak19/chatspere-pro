@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatSphere Pro</title>
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        secondary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .message-fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .scrollbar-thin {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.5);
+            border-radius: 3px;
+        }
+
+        .user-fade-in {
+            animation: slideInRight 0.4s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .user-fade-out {
+            animation: slideOutRight 0.3s ease-in;
+        }
+
+        @keyframes slideOutRight {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+        }
+
+        .emoji-picker {
+            transform-origin: bottom left;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .emoji-item:hover {
+            transform: scale(1.2);
+            transition: transform 0.1s ease;
+        }
+
+        .emoji-category-btn.active {
+            background-color: rgba(59, 130, 246, 0.2);
+            border-color: rgb(59, 130, 246);
+        }
+
+        /* Mobile sidebar overlay */
+        .sidebar-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .mobile-message {
+                max-width: 85%;
+            }
+
+            .mobile-input {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+
+        /* Hide scrollbar on mobile for cleaner look */
+        @media (max-width: 640px) {
+            .scrollbar-thin::-webkit-scrollbar {
+                width: 3px;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 min-h-screen flex flex-col">
+    <div id="vanta-bg" class="fixed inset-0 -z-10"></div>
+
+    <!-- Header -->
+    <header class="bg-gray-800/80 backdrop-blur-md border-b border-gray-700 sticky top-0 z-30">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center">
+                        <i data-feather="message-circle" class="text-white text-sm md:text-base"></i>
+                    </div>
+                    <h1 class="text-lg md:text-xl font-bold text-white">ChatSphere Pro</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-btn" class="md:hidden text-gray-300 hover:text-white">
+                        <i data-feather="users" class="w-5 h-5"></i>
+                    </button>
+                    <div class="hidden md:flex items-center space-x-2 text-gray-300">
+                        <i data-feather="wifi" class="w-4 h-4" id="connection-status"></i>
+                        <span class="text-sm" id="status-text">Connecting...</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse" id="online-indicator"></div>
+                        <span class="text-sm text-gray-300 hidden md:block" id="user-count">0 online</span>
+                        <span class="text-sm text-gray-300 md:hidden" id="mobile-user-count">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay fixed inset-0 hidden md:hidden z-40"></div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 container mx-auto px-2 sm:px-4 py-4 md:py-6 flex max-w-7xl">
+        <!-- Online Users Sidebar - Hidden on mobile by default -->
+        <div id="users-sidebar"
+            class="fixed md:relative inset-y-0 left-0 z-50 w-64 bg-gray-800/95 md:bg-gray-800/50 backdrop-blur-md md:backdrop-blur-sm rounded-r-lg md:rounded-lg border-r md:border border-gray-700 p-4 h-full md:h-fit md:max-h-[70vh] overflow-y-auto scrollbar-thin transform -translate-x-full md:translate-x-0 transition-transform duration-300 md:mx-4 lg:mx-10">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <i data-feather="users" class="w-4 h-4 text-primary-400"></i>
+                    <h2 class="text-lg font-semibold text-white">Online Users</h2>
+                    <span id="sidebar-user-count"
+                        class="bg-primary-600 text-white text-xs px-2 py-1 rounded-full">0</span>
+                </div>
+                <button id="close-sidebar" class="md:hidden text-gray-400 hover:text-white">
+                    <i data-feather="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="users-list" class="space-y-3">
+                <!-- Users will be dynamically added here -->
+                <div class="text-center text-gray-400 py-4">
+                    <i data-feather="user" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                    <p class="text-sm">No users online</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="flex-1 flex flex-col w-full max-w-2xl md:mr-6">
+            <!-- Chat Messages -->
+            <div id="log"
+                class="flex-1 bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700 p-3 md:p-4 mb-3 md:mb-4 overflow-y-auto scrollbar-thin max-h-[60vh] md:max-h-[60vh]">
+                <div class="text-center text-gray-400 py-8">
+                    <i data-feather="message-circle" class="w-10 h-10 md:w-12 md:h-12 mx-auto mb-3 opacity-50"></i>
+                    <p class="text-sm md:text-base">Welcome to ChatSphere Pro! Start a conversation...</p>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div
+                class="bg-gray-800/80 backdrop-blur-md rounded-lg border border-gray-700 p-3 md:p-4 relative mobile-input">
+                <!-- Emoji Picker -->
+                <div id="emoji-picker"
+                    class="emoji-picker absolute bottom-full left-0 md:left-auto md:right-0 mb-2 bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-3 md:p-4 w-full md:w-80 max-h-64 md:max-h-80 overflow-y-auto hidden z-30 scrollbar-thin">
+                    <div class="flex space-x-1 mb-3 border-b border-gray-600 pb-2 overflow-x-auto">
+                        <button
+                            class="emoji-category-btn active px-2 py-1 text-xs rounded border border-transparent text-white flex-shrink-0"
+                            data-category="smileys">😀</button>
+                        <button
+                            class="emoji-category-btn px-2 py-1 text-xs rounded border border-transparent text-white flex-shrink-0"
+                            data-category="people">👋</button>
+                        <button
+                            class="emoji-category-btn px-2 py-1 text-xs rounded border border-transparent text-white flex-shrink-0"
+                            data-category="animals">🐻</button>
+                        <button
+                            class="emoji-category-btn px-2 py-1 text-xs rounded border border-transparent text-white flex-shrink-0"
+                            data-category="food">🍕</button>
+                        <button
+                            class="emoji-category-btn px-2 py-1 text-xs rounded border border-transparent text-white flex-shrink-0"
+                            data-category="activities">⚽</button>
+                        <button
+                            class="emoji-category-btn px-2 py-1 text-xs rounded border border-transparent text-white flex-shrink-0"
+                            data-category="objects">💡</button>
+                        <button
+                            class="emoji-category-btn px-2 py-1 text-xs rounded border border-transparent text-white flex-shrink-0"
+                            data-category="symbols">❤️</button>
+                    </div>
+                    <div id="emoji-grid" class="grid grid-cols-6 md:grid-cols-8 gap-1">
+                        <!-- Emojis will be dynamically added here -->
+                    </div>
+                </div>
+
+                <div class="flex space-x-2 md:space-x-3">
+                    <div class="relative flex-1">
+                        <input id="msg" type="text" placeholder="Type your message..."
+                            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 md:px-4 py-2 md:py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 pr-10 text-sm md:text-base"
+                            onkeypress="if(event.key === 'Enter') sendMessage()">
+                        <button id="emoji-toggle"
+                            class="absolute right-2 md:right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-primary-400 transition-colors">
+                            <i data-feather="smile" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <button onclick="sendMessage()"
+                        class="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 flex items-center space-x-1 md:space-x-2 text-sm md:text-base">
+                        <i data-feather="send" class="w-3 h-3 md:w-4 md:h-4"></i>
+                        <span class="hidden sm:inline">Send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Vanta.js Background
+        VANTA.NET({
+            el: "#vanta-bg",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            color: 0x0ea5e9,
+            backgroundColor: 0x0D0D0D,
+            points: 12.00,
+            maxDistance: 22.00,
+            spacing: 18.00
+        });
+
+        // Chat functionality
+        const username = sessionStorage.getItem("username") || "Anonymous_" + Math.floor(Math.random() * 1000);
+
+        // Updated WebSocket connection for deployment
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}`;
+        const ws = new WebSocket(wsUrl);
+
+        // Store online users
+        let onlineUsers = [];
+        let userActivityTimeout;
+
+        // Emoji data
+        const emojiCategories = {
+            smileys: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯'],
+            people: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '👊', '✊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏'],
+            animals: ['🐵', '🐒', '🦍', '🦧', '🐶', '🐕', '🦮', '🐕‍🦺', '🐩', '🐺', '🦊', '🦝', '🐱', '🐈', '🐈‍⬛', '🦁', '🐯', '🐅', '🐆', '🐴', '🐎', '🦄', '🦓', '🦌', '🐮', '🐂', '🐃', '🐄', '🐷', '🐖', '🐗', '🐽', '🐏', '🐑', '🐐', '🐪', '🐫', '🦙', '🦒', '🐘', '🦣', '🦏', '🦛', '🐭', '🐁', '🐀', '🐹', '🐰', '🐇', '🐿️', '🦫', '🦔', '🦇', '🐻', '🐻‍❄️', '🐨', '🐼', '🦥', '🦦', '🦨', '🦘', '🦡'],
+            food: ['🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🧈', '🥞', '🧇', '🥓', '🥩', '🍗', '🍖', '🦴', '🌭', '🍔', '🍟', '🍕'],
+            activities: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🤼', '🤸', '⛹️', '🤾', '🚴', '🚵', '🧗', '🤺', '🏇', '🏄', '🏊', '🤽', '🚣', '🧘'],
+            objects: ['💡', '🔦', '🏮', '🪔', '📔', '📕', '📖', '📗', '📘', '📙', '📚', '📓', '📒', '📃', '📜', '📄', '📰', '🗞️', '📑', '🔖', '🏷️', '💰', '🪙', '💴', '💵', '💶', '💷', '💸', '💳', '🧾', '✉️', '📧', '📨', '📩', '📤', '📥', '📦', '🪧', '📮', '🗳️', '✏️', '✒️', '🖋️', '🖊️', '🖌️', '🖍️', '📝', '💼', '📁', '📂', '🗂️'],
+            symbols: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳']
+        };
+
+        // Generate random avatar images from DiceBear API
+        function getRandomAvatarUrl(username) {
+            const styles = ['avataaars', 'micah', 'miniavs', 'personas', 'bottts'];
+            const randomStyle = styles[Math.floor(Math.random() * styles.length)];
+            return `https://api.dicebear.com/7.x/${randomStyle}/svg?seed=${username}`;
+        }
+
+        // Mobile sidebar functionality
+        function initMobileSidebar() {
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const closeSidebarBtn = document.getElementById('close-sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const usersSidebar = document.getElementById('users-sidebar');
+
+            function openSidebar() {
+                usersSidebar.classList.remove('-translate-x-full');
+                sidebarOverlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                usersSidebar.classList.add('-translate-x-full');
+                sidebarOverlay.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+
+            mobileMenuBtn.addEventListener('click', openSidebar);
+            closeSidebarBtn.addEventListener('click', closeSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+
+            // Close sidebar when clicking on a user (mobile)
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('#users-list button') || e.target.closest('#users-list .user-fade-in')) {
+                    closeSidebar();
+                }
+            });
+        }
+
+        // Update connection status
+        function updateStatus(connected, text) {
+            const statusIcon = document.getElementById('connection-status');
+            const statusText = document.getElementById('status-text');
+            const indicator = document.getElementById('online-indicator');
+
+            if (connected) {
+                statusIcon.setAttribute('data-feather', 'wifi');
+                statusText.textContent = 'Connected';
+                indicator.className = 'w-2 h-2 bg-green-500 rounded-full';
+            } else {
+                statusIcon.setAttribute('data-feather', 'wifi-off');
+                statusText.textContent = text || 'Disconnected';
+                indicator.className = 'w-2 h-2 bg-red-500 rounded-full';
+            }
+            feather.replace();
+        }
+
+        // Update online users list
+        function updateOnlineUsers(users) {
+            onlineUsers = users;
+            const usersList = document.getElementById('users-list');
+            const sidebarUserCount = document.getElementById('sidebar-user-count');
+            const userCount = document.getElementById('user-count');
+            const mobileUserCount = document.getElementById('mobile-user-count');
+
+            sidebarUserCount.textContent = users.length;
+            userCount.textContent = users.length + ' online';
+            mobileUserCount.textContent = users.length;
+
+            if (users.length === 0) {
+                usersList.innerHTML = `
+                    <div class="text-center text-gray-400 py-4">
+                        <i data-feather="user" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                        <p class="text-sm">No users online</p>
+                    </div>
+                `;
+            } else {
+                usersList.innerHTML = '';
+                users.forEach(user => {
+                    const userElement = document.createElement('div');
+                    userElement.className = 'user-fade-in flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-700/50 transition-colors duration-200';
+                    userElement.id = `user-${user.username}`;
+
+                    // Use the same avatar for consistency
+                    const avatarUrl = getRandomAvatarUrl(user.username);
+
+                    userElement.innerHTML = `
+                        <div class="relative">
+                            <img src="${avatarUrl}" alt="${user.username}" class="w-8 h-8 md:w-10 md:h-10 rounded-full">
+                            <div class="absolute -bottom-1 -right-1 w-2 h-2 md:w-3 md:h-3 bg-green-500 rounded-full border-2 border-gray-800"></div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-white font-medium truncate text-sm md:text-base">${user.username}</p>
+                            <p class="text-gray-400 text-xs truncate">Active now</p>
+                        </div>
+                    `;
+
+                    usersList.appendChild(userElement);
+                });
+            }
+            feather.replace();
+        }
+
+        // Add a user to the online list
+        function addUser(user) {
+            // Check if user already exists
+            if (!onlineUsers.some(u => u.username === user.username)) {
+                onlineUsers.push(user);
+                updateOnlineUsers(onlineUsers);
+                updateUserCount(onlineUsers.length);
+
+                // Send system message about user joining
+                log({
+                    type: "system",
+                    message: `${user.username} joined the chat`
+                }, true);
+            }
+        }
+
+        // Remove a user from the online list
+        function removeUser(username) {
+            const userElement = document.getElementById(`user-${username}`);
+            if (userElement) {
+                userElement.classList.add('user-fade-out');
+                setTimeout(() => {
+                    onlineUsers = onlineUsers.filter(u => u.username !== username);
+                    updateOnlineUsers(onlineUsers);
+                    updateUserCount(onlineUsers.length);
+
+                    // Send system message about user leaving
+                    log({
+                        type: "system",
+                        message: `${username} left the chat`
+                    }, true);
+                }, 300);
+            } else {
+                onlineUsers = onlineUsers.filter(u => u.username !== username);
+                updateOnlineUsers(onlineUsers);
+                updateUserCount(onlineUsers.length);
+            }
+        }
+
+        // Request user list from server
+        function requestUserList() {
+            ws.send(JSON.stringify({ type: "getUsers" }));
+        }
+
+        // Send user activity to help track online users
+        function sendUserActivity() {
+            ws.send(JSON.stringify({ type: "activity", username: username }));
+        }
+
+        // Emoji Picker Functions
+        function initEmojiPicker() {
+            const emojiToggle = document.getElementById('emoji-toggle');
+            const emojiPicker = document.getElementById('emoji-picker');
+            const emojiGrid = document.getElementById('emoji-grid');
+            const categoryButtons = document.querySelectorAll('.emoji-category-btn');
+
+            // Load default category
+            loadEmojiCategory('smileys');
+
+            // Toggle emoji picker
+            emojiToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                emojiPicker.classList.toggle('hidden');
+                if (!emojiPicker.classList.contains('hidden')) {
+                    loadEmojiCategory('smileys');
+                }
+            });
+
+            // Close emoji picker when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!emojiPicker.contains(e.target) && e.target !== emojiToggle) {
+                    emojiPicker.classList.add('hidden');
+                }
+            });
+
+            // Category button handlers
+            categoryButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const category = btn.dataset.category;
+
+                    // Update active button
+                    categoryButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    // Load category
+                    loadEmojiCategory(category);
+                });
+            });
+
+            // Adjust emoji picker position on mobile
+            function adjustEmojiPicker() {
+                if (window.innerWidth < 768) {
+                    emojiPicker.classList.remove('md:right-0', 'md:left-auto');
+                    emojiPicker.classList.add('left-0', 'right-0', 'mx-2');
+                } else {
+                    emojiPicker.classList.remove('left-0', 'right-0', 'mx-2');
+                    emojiPicker.classList.add('md:right-0', 'md:left-auto');
+                }
+            }
+
+            // Adjust on load and resize
+            adjustEmojiPicker();
+            window.addEventListener('resize', adjustEmojiPicker);
+        }
+
+        function loadEmojiCategory(category) {
+            const emojiGrid = document.getElementById('emoji-grid');
+            emojiGrid.innerHTML = '';
+
+            emojiCategories[category].forEach(emoji => {
+                const emojiButton = document.createElement('button');
+                emojiButton.className = 'emoji-item text-xl p-1 md:p-2 rounded hover:bg-gray-700 transition-colors focus:outline-none focus:bg-gray-700';
+                emojiButton.textContent = emoji;
+                emojiButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    insertEmoji(emoji);
+                });
+                emojiGrid.appendChild(emojiButton);
+            });
+        }
+
+        function insertEmoji(emoji) {
+            const msgInput = document.getElementById('msg');
+            const start = msgInput.selectionStart;
+            const end = msgInput.selectionEnd;
+            const text = msgInput.value;
+            const newText = text.substring(0, start) + emoji + text.substring(end);
+
+            msgInput.value = newText;
+            msgInput.focus();
+            msgInput.selectionStart = msgInput.selectionEnd = start + emoji.length;
+
+            // Close emoji picker after selection
+            document.getElementById('emoji-picker').classList.add('hidden');
+        }
+
+        ws.onopen = () => {
+            updateStatus(true, 'Connected');
+            log({ type: "system", message: "Connected to server" }, true);
+            ws.send(JSON.stringify({ type: "login", username }));
+
+            // Add current user to the list
+            addUser({ username: username });
+
+            // Request user list after a short delay
+            setTimeout(requestUserList, 1000);
+
+            // Set up periodic activity updates
+            userActivityTimeout = setInterval(sendUserActivity, 30000);
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === "system") {
+                log({ type: "system", message: data.message }, true);
+
+                // Check if this is a user join/leave message from server
+                if (data.message && data.message.includes("joined")) {
+                    const username = data.message.split(" ")[0];
+                    if (username !== "Welcome,") { // Filter out welcome messages
+                        addUser({ username: username });
+                    }
+                } else if (data.message && data.message.includes("left")) {
+                    const username = data.message.split(" ")[0];
+                    removeUser(username);
+                }
+
+            } else if (data.type === "chat") {
+                // Only show messages from other users (not our own)
+                if (data.username !== username) {
+                    log({ type: "chat", username: data.username, message: data.message, timestamp: new Date().toLocaleTimeString() }, true);
+
+                    // When we receive a message, update the user list
+                    if (data.username && !onlineUsers.some(u => u.username === data.username)) {
+                        addUser({ username: data.username });
+                    }
+                }
+
+            } else if (data.type === "userList") {
+                // Server sent the user list
+                if (data.users && Array.isArray(data.users)) {
+                    // Merge with current users, avoiding duplicates
+                    data.users.forEach(user => {
+                        if (!onlineUsers.some(u => u.username === user.username) && user.username !== username) {
+                            addUser(user);
+                        }
+                    });
+                }
+            } else if (data.type === "userCount") {
+                updateUserCount(data.count);
+            }
+        };
+
+        ws.onclose = () => {
+            updateStatus(false, 'Disconnected');
+            log({ type: "system", message: "Disconnected from server" }, true);
+            clearInterval(userActivityTimeout);
+        };
+
+        ws.onerror = (err) => {
+            updateStatus(false, 'Connection Error');
+            log({ type: "system", message: "Error: " + err }, true);
+            clearInterval(userActivityTimeout);
+        };
+
+        function updateUserCount(count) {
+            document.getElementById('user-count').textContent = count + ' online';
+            document.getElementById('mobile-user-count').textContent = count;
+        }
+
+        function sendMessage() {
+            const msgInput = document.getElementById("msg");
+            const msg = msgInput.value.trim();
+            if (!msg) return;
+
+            // Show your own message immediately (only once)
+            log({
+                type: "chat",
+                username: username,
+                message: msg,
+                timestamp: new Date().toLocaleTimeString()
+            }, true);
+
+            // Send message to server (for other users)
+            ws.send(JSON.stringify({ type: "message", message: msg }));
+
+            msgInput.value = "";
+            msgInput.focus();
+        }
+
+        function log(data, isNew = false) {
+            const logDiv = document.getElementById("log");
+            const messageDiv = document.createElement("div");
+            messageDiv.className = "message-fade-in mb-3 last:mb-0";
+
+            const timestamp = data.timestamp || new Date().toLocaleTimeString();
+
+            if (data.type === "system") {
+                messageDiv.innerHTML = `
+                    <div class="flex items-center justify-center">
+                        <div class="bg-gray-700 text-gray-300 text-xs md:text-sm px-3 py-1 rounded-full inline-flex items-center space-x-1">
+                            <i data-feather="info" class="w-3 h-3"></i>
+                            <span>${data.message}</span>
+                        </div>
+                    </div>
+                `;
+            } else if (data.type === "chat") {
+                const isCurrentUser = data.username === username;
+                messageDiv.className += isCurrentUser ? ' text-right' : ' text-left';
+
+                // Get avatar for the user
+                const avatarUrl = getRandomAvatarUrl(data.username);
+
+                messageDiv.innerHTML = `
+                    <div class="flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} items-start space-x-2 space-x-reverse">
+                        <img src="${avatarUrl}" alt="${data.username}" class="w-6 h-6 md:w-8 md:h-8 rounded-full flex-shrink-0 mt-1">
+                        <div class="flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'} max-w-[85%] md:max-w-full">
+                            <div class="text-xs ${isCurrentUser ? 'text-primary-200' : 'text-gray-400'} mb-1">
+                                ${isCurrentUser ? 'You' : data.username}
+                            </div>
+                            <div class="inline-block mobile-message max-w-xs lg:max-w-md ${isCurrentUser ? 'bg-primary-600' : 'bg-gray-700'} rounded-lg p-2 md:p-3">
+                                <div class="text-white break-words text-sm md:text-lg">${data.message}</div>
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">${timestamp}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (isNew) {
+                logDiv.appendChild(messageDiv);
+                logDiv.scrollTop = logDiv.scrollHeight;
+
+                // Remove welcome message if it's the first real message
+                const welcomeMsg = logDiv.querySelector('.text-center.text-gray-400.py-8');
+                if (welcomeMsg) {
+                    welcomeMsg.remove();
+                }
+            }
+
+            feather.replace();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function () {
+            feather.replace();
+            document.getElementById('msg').focus();
+            initEmojiPicker();
+            initMobileSidebar();
+        });
+
+        // Track page visibility to detect when users leave
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'hidden') {
+                // User might have left the page
+                clearInterval(userActivityTimeout);
+            }
+        });
+
+        // Handle orientation change
+        window.addEventListener('orientationchange', function () {
+            setTimeout(() => {
+                feather.replace();
+            }, 100);
+        });
+    </script>
+</body>
+
+</html>
