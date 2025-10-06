@@ -10,6 +10,40 @@
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        secondary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         .message-fade-in {
             animation: fadeIn 0.3s ease-in-out;
@@ -116,118 +150,6 @@
                 width: 3px;
             }
         }
-
-        /* Video call styles */
-        .video-container {
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #1f2937;
-            aspect-ratio: 16/9;
-        }
-
-        .video-controls {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
-            padding: 10px;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .video-container:hover .video-controls {
-            opacity: 1;
-        }
-
-        .control-btn {
-            background: rgba(30, 41, 59, 0.8);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .control-btn:hover {
-            background: rgba(30, 41, 59, 1);
-            transform: scale(1.1);
-        }
-
-        .control-btn.active {
-            background: #ef4444;
-        }
-
-        .control-btn.muted {
-            background: #ef4444;
-        }
-
-        .video-grid {
-            display: grid;
-            gap: 10px;
-            height: 100%;
-        }
-
-        .video-grid.single {
-            grid-template-columns: 1fr;
-        }
-
-        .video-grid.double {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .video-grid.multiple {
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        }
-
-        .participant-name {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-
-        .screen-share-container {
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #1f2937;
-            aspect-ratio: 16/9;
-        }
-
-        .screen-share-label {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-
-        .feature-unavailable {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #ef4444;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            margin: 10px 0;
-        }
     </style>
 </head>
 
@@ -268,7 +190,7 @@
     <div id="sidebar-overlay" class="sidebar-overlay fixed inset-0 hidden md:hidden z-40"></div>
 
     <!-- Main Content Area -->
-    <div class="flex-1 container mx-auto px-2 sm:px-4 py-4 md:py-6 flex max-w-7xl h-[calc(100vh-80px)]">
+    <div class="flex-1 container mx-auto px-2 sm:px-4 py-4 md:py-6 flex max-w-7xl">
         <!-- Online Users Sidebar - Hidden on mobile by default -->
         <div id="users-sidebar"
             class="fixed md:relative inset-y-0 left-0 z-50 w-64 bg-gray-800/95 md:bg-gray-800/50 backdrop-blur-md md:backdrop-blur-sm rounded-r-lg md:rounded-lg border-r md:border border-gray-700 p-4 h-full md:h-fit md:max-h-[70vh] overflow-y-auto scrollbar-thin transform -translate-x-full md:translate-x-0 transition-transform duration-300 md:mx-4 lg:mx-10">
@@ -292,60 +214,11 @@
             </div>
         </div>
 
-        <!-- Video Call Area -->
-        <div class="flex-1 flex flex-col md:mr-6">
-            <!-- Video Call Controls -->
-            <div class="flex justify-center space-x-4 mb-4">
-                <button id="start-video-call"
-                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2">
-                    <i data-feather="video" class="w-4 h-4"></i>
-                    <span>Start Video Call</span>
-                </button>
-                <button id="start-screen-share"
-                    class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2">
-                    <i data-feather="monitor" class="w-4 h-4"></i>
-                    <span>Share Screen</span>
-                </button>
-                <button id="end-call"
-                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 hidden">
-                    <i data-feather="phone-off" class="w-4 h-4"></i>
-                    <span>End Call</span>
-                </button>
-            </div>
-
-            <!-- Screen Share Warning -->
-            <div id="screen-share-warning" class="feature-unavailable hidden mb-4">
-                <div class="flex items-center justify-center space-x-2">
-                    <i data-feather="alert-triangle" class="w-4 h-4"></i>
-                    <span class="text-sm">Screen sharing requires HTTPS connection</span>
-                </div>
-            </div>
-
-            <!-- Video Container -->
-            <div id="video-container"
-                class="flex-1 bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700 p-4 mb-4 hidden">
-                <div id="video-grid" class="video-grid single h-full">
-                    <!-- Video elements will be added here -->
-                </div>
-            </div>
-
-            <!-- Screen Share Container -->
-            <div id="screen-share-container" class="screen-share-container hidden mb-4">
-                <div class="screen-share-label">
-                    <i data-feather="monitor" class="w-3 h-3 inline mr-1"></i>
-                    Screen Share
-                </div>
-                <video id="screen-share-video" autoplay muted class="w-full h-full"></video>
-                <div class="video-controls">
-                    <button id="stop-screen-share" class="control-btn">
-                        <i data-feather="square" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            </div>
-
+        <!-- Chat Area -->
+        <div class="flex-1 flex flex-col w-full max-w-2xl md:mr-6">
             <!-- Chat Messages -->
             <div id="log"
-                class="flex-1 bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700 p-3 md:p-4 overflow-y-auto scrollbar-thin max-h-[40vh]">
+                class="flex-1 bg-gray-800/50 backdrop-blur-sm rounded-lg border border-gray-700 p-3 md:p-4 mb-3 md:mb-4 overflow-y-auto scrollbar-thin max-h-[60vh] md:max-h-[60vh]">
                 <div class="text-center text-gray-400 py-8">
                     <i data-feather="message-circle" class="w-10 h-10 md:w-12 md:h-12 mx-auto mb-3 opacity-50"></i>
                     <p class="text-sm md:text-base">Welcome to ChatSphere Pro! Start a conversation...</p>
@@ -354,7 +227,7 @@
 
             <!-- Input Area -->
             <div
-                class="bg-gray-800/80 backdrop-blur-md rounded-lg border border-gray-700 p-3 md:p-4 relative mobile-input mt-4">
+                class="bg-gray-800/80 backdrop-blur-md rounded-lg border border-gray-700 p-3 md:p-4 relative mobile-input">
                 <!-- Emoji Picker -->
                 <div id="emoji-picker"
                     class="emoji-picker absolute bottom-full left-0 md:left-auto md:right-0 mb-2 bg-gray-800 border border-gray-600 rounded-lg shadow-xl p-3 md:p-4 w-full md:w-80 max-h-64 md:max-h-80 overflow-y-auto hidden z-30 scrollbar-thin">
@@ -406,20 +279,6 @@
         </div>
     </div>
 
-    <!-- Video Call Controls (Bottom) -->
-    <div id="video-controls-bottom"
-        class="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-4 z-50 hidden">
-        <button id="toggle-mic" class="control-btn">
-            <i data-feather="mic" class="w-5 h-5"></i>
-        </button>
-        <button id="toggle-camera" class="control-btn">
-            <i data-feather="video" class="w-5 h-5"></i>
-        </button>
-        <button id="end-call-bottom" class="control-btn bg-red-600 hover:bg-red-700">
-            <i data-feather="phone-off" class="w-5 h-5"></i>
-        </button>
-    </div>
-
     <script>
         // Vanta.js Background
         VANTA.NET({
@@ -441,7 +300,7 @@
         // Chat functionality
         const username = sessionStorage.getItem("username") || "Anonymous_" + Math.floor(Math.random() * 1000);
 
-        // Updated WebSocket connection for IP setup
+        // Updated WebSocket connection for deployment
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}`;
         const ws = new WebSocket(wsUrl);
@@ -449,18 +308,6 @@
         // Store online users
         let onlineUsers = [];
         let userActivityTimeout;
-
-        // Video call variables
-        let localStream = null;
-        let peerConnections = {};
-        let isInCall = false;
-        let isScreenSharing = false;
-        let screenStream = null;
-        let isMuted = false;
-        let isVideoOff = false;
-
-        // Check if screen sharing is supported
-        const isScreenShareSupported = navigator.mediaDevices && 'getDisplayMedia' in navigator.mediaDevices;
 
         // Emoji data
         const emojiCategories = {
@@ -712,309 +559,6 @@
             document.getElementById('emoji-picker').classList.add('hidden');
         }
 
-        // Video Call Functions
-        function initVideoCall() {
-            const startVideoCallBtn = document.getElementById('start-video-call');
-            const startScreenShareBtn = document.getElementById('start-screen-share');
-            const endCallBtn = document.getElementById('end-call');
-            const endCallBottomBtn = document.getElementById('end-call-bottom');
-            const toggleMicBtn = document.getElementById('toggle-mic');
-            const toggleCameraBtn = document.getElementById('toggle-camera');
-            const stopScreenShareBtn = document.getElementById('stop-screen-share');
-
-            startVideoCallBtn.addEventListener('click', startVideoCall);
-
-            // Handle screen share button based on support
-            if (isScreenShareSupported) {
-                startScreenShareBtn.addEventListener('click', startScreenShare);
-            } else {
-                startScreenShareBtn.disabled = true;
-                startScreenShareBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                startScreenShareBtn.title = "Screen sharing not supported in this browser";
-
-                // Show warning message
-                document.getElementById('screen-share-warning').classList.remove('hidden');
-            }
-
-            endCallBtn.addEventListener('click', endCall);
-            endCallBottomBtn.addEventListener('click', endCall);
-            toggleMicBtn.addEventListener('click', toggleMic);
-            toggleCameraBtn.addEventListener('click', toggleCamera);
-            stopScreenShareBtn.addEventListener('click', stopScreenShare);
-        }
-
-        async function startVideoCall() {
-            try {
-                // Check if browser supports media devices
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    throw new Error("Media devices not supported in this browser");
-                }
-
-                // Request camera and microphone access
-                localStream = await navigator.mediaDevices.getUserMedia({
-                    video: true,
-                    audio: true
-                });
-
-                // Show video container
-                document.getElementById('video-container').classList.remove('hidden');
-                document.getElementById('start-video-call').classList.add('hidden');
-                document.getElementById('end-call').classList.remove('hidden');
-                document.getElementById('video-controls-bottom').classList.remove('hidden');
-
-                // Add local video
-                addVideoElement(username, localStream, true);
-
-                // Update UI
-                isInCall = true;
-
-                // Notify other users
-                ws.send(JSON.stringify({
-                    type: "videoCall",
-                    action: "start",
-                    username: username
-                }));
-
-                log({
-                    type: "system",
-                    message: "Video call started"
-                }, true);
-
-            } catch (error) {
-                console.error("Error accessing media devices:", error);
-                let errorMessage = "Failed to start video call";
-
-                if (error.name === 'NotAllowedError') {
-                    errorMessage = "Camera/microphone access denied. Please allow permissions and try again.";
-                } else if (error.name === 'NotFoundError') {
-                    errorMessage = "No camera/microphone found on your device.";
-                } else if (error.name === 'NotSupportedError') {
-                    errorMessage = "Video calling not supported in this browser.";
-                } else {
-                    errorMessage = "Failed to start video call: " + error.message;
-                }
-
-                log({
-                    type: "system",
-                    message: errorMessage
-                }, true);
-            }
-        }
-
-        async function startScreenShare() {
-            try {
-                // Check if screen sharing is supported
-                if (!isScreenShareSupported) {
-                    throw new Error("Screen sharing not supported in this browser");
-                }
-
-                // Request screen sharing
-                screenStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: true,
-                    audio: true
-                });
-
-                // Show screen share container
-                document.getElementById('screen-share-container').classList.remove('hidden');
-                document.getElementById('start-screen-share').classList.add('hidden');
-
-                // Set up screen share video
-                const screenVideo = document.getElementById('screen-share-video');
-                screenVideo.srcObject = screenStream;
-
-                // Handle when user stops sharing via browser UI
-                screenStream.getTracks().forEach(track => {
-                    track.onended = stopScreenShare;
-                });
-
-                isScreenSharing = true;
-
-                // Notify other users
-                ws.send(JSON.stringify({
-                    type: "screenShare",
-                    action: "start",
-                    username: username
-                }));
-
-                log({
-                    type: "system",
-                    message: "Screen sharing started"
-                }, true);
-
-            } catch (error) {
-                console.error("Error sharing screen:", error);
-                let errorMessage = "Failed to share screen";
-
-                if (error.name === 'NotAllowedError') {
-                    errorMessage = "Screen sharing was cancelled or not allowed.";
-                } else {
-                    errorMessage = "Failed to share screen: " + error.message;
-                }
-
-                log({
-                    type: "system",
-                    message: errorMessage
-                }, true);
-            }
-        }
-
-        function stopScreenShare() {
-            if (screenStream) {
-                screenStream.getTracks().forEach(track => track.stop());
-                screenStream = null;
-            }
-
-            document.getElementById('screen-share-container').classList.add('hidden');
-            document.getElementById('start-screen-share').classList.remove('hidden');
-            isScreenSharing = false;
-
-            // Notify other users
-            ws.send(JSON.stringify({
-                type: "screenShare",
-                action: "stop",
-                username: username
-            }));
-
-            log({
-                type: "system",
-                message: "Screen sharing stopped"
-            }, true);
-        }
-
-        function endCall() {
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-                localStream = null;
-            }
-
-            if (isScreenSharing) {
-                stopScreenShare();
-            }
-
-            // Hide video elements
-            document.getElementById('video-container').classList.add('hidden');
-            document.getElementById('start-video-call').classList.remove('hidden');
-            document.getElementById('end-call').classList.add('hidden');
-            document.getElementById('video-controls-bottom').classList.add('hidden');
-
-            // Clear video grid
-            document.getElementById('video-grid').innerHTML = '';
-
-            // Reset states
-            isInCall = false;
-            isMuted = false;
-            isVideoOff = false;
-
-            // Update control buttons
-            document.getElementById('toggle-mic').classList.remove('muted');
-            document.getElementById('toggle-camera').classList.remove('active');
-
-            // Notify other users
-            ws.send(JSON.stringify({
-                type: "videoCall",
-                action: "end",
-                username: username
-            }));
-
-            log({
-                type: "system",
-                message: "Video call ended"
-            }, true);
-        }
-
-        function toggleMic() {
-            if (localStream) {
-                const audioTracks = localStream.getAudioTracks();
-                audioTracks.forEach(track => {
-                    track.enabled = !track.enabled;
-                });
-                isMuted = !isMuted;
-
-                const micBtn = document.getElementById('toggle-mic');
-                if (isMuted) {
-                    micBtn.classList.add('muted');
-                    micBtn.innerHTML = '<i data-feather="mic-off" class="w-5 h-5"></i>';
-                } else {
-                    micBtn.classList.remove('muted');
-                    micBtn.innerHTML = '<i data-feather="mic" class="w-5 h-5"></i>';
-                }
-                feather.replace();
-            }
-        }
-
-        function toggleCamera() {
-            if (localStream) {
-                const videoTracks = localStream.getVideoTracks();
-                videoTracks.forEach(track => {
-                    track.enabled = !track.enabled;
-                });
-                isVideoOff = !isVideoOff;
-
-                const cameraBtn = document.getElementById('toggle-camera');
-                if (isVideoOff) {
-                    cameraBtn.classList.add('active');
-                    cameraBtn.innerHTML = '<i data-feather="video-off" class="w-5 h-5"></i>';
-                } else {
-                    cameraBtn.classList.remove('active');
-                    cameraBtn.innerHTML = '<i data-feather="video" class="w-5 h-5"></i>';
-                }
-                feather.replace();
-            }
-        }
-
-        function addVideoElement(user, stream, isLocal = false) {
-            const videoGrid = document.getElementById('video-grid');
-            const videoContainer = document.createElement('div');
-            videoContainer.className = 'video-container relative';
-            videoContainer.id = `video-${user}`;
-
-            const video = document.createElement('video');
-            video.autoplay = true;
-            video.muted = isLocal; // Mute local video to avoid echo
-            video.playsInline = true;
-            video.srcObject = stream;
-
-            const nameLabel = document.createElement('div');
-            nameLabel.className = 'participant-name';
-            nameLabel.textContent = isLocal ? 'You' : user;
-
-            const controls = document.createElement('div');
-            controls.className = 'video-controls';
-
-            videoContainer.appendChild(video);
-            videoContainer.appendChild(nameLabel);
-            videoContainer.appendChild(controls);
-            videoGrid.appendChild(videoContainer);
-
-            // Update grid layout based on number of participants
-            updateVideoGridLayout();
-        }
-
-        function removeVideoElement(user) {
-            const videoElement = document.getElementById(`video-${user}`);
-            if (videoElement) {
-                videoElement.remove();
-                updateVideoGridLayout();
-            }
-        }
-
-        function updateVideoGridLayout() {
-            const videoGrid = document.getElementById('video-grid');
-            const videoCount = videoGrid.children.length;
-
-            // Reset classes
-            videoGrid.className = 'video-grid';
-
-            // Apply appropriate grid layout
-            if (videoCount === 1) {
-                videoGrid.classList.add('single');
-            } else if (videoCount === 2) {
-                videoGrid.classList.add('double');
-            } else {
-                videoGrid.classList.add('multiple');
-            }
-        }
-
         ws.onopen = () => {
             updateStatus(true, 'Connected');
             log({ type: "system", message: "Connected to server" }, true);
@@ -1045,7 +589,6 @@
                 } else if (data.message && data.message.includes("left")) {
                     const username = data.message.split(" ")[0];
                     removeUser(username);
-                    removeVideoElement(username);
                 }
 
             } else if (data.type === "chat") {
@@ -1071,33 +614,6 @@
                 }
             } else if (data.type === "userCount") {
                 updateUserCount(data.count);
-            } else if (data.type === "videoCall") {
-                // Handle video call notifications from other users
-                if (data.action === "start" && data.username !== username) {
-                    log({
-                        type: "system",
-                        message: `${data.username} started a video call`
-                    }, true);
-                } else if (data.action === "end" && data.username !== username) {
-                    log({
-                        type: "system",
-                        message: `${data.username} ended the video call`
-                    }, true);
-                    removeVideoElement(data.username);
-                }
-            } else if (data.type === "screenShare") {
-                // Handle screen share notifications from other users
-                if (data.action === "start" && data.username !== username) {
-                    log({
-                        type: "system",
-                        message: `${data.username} started screen sharing`
-                    }, true);
-                } else if (data.action === "stop" && data.username !== username) {
-                    log({
-                        type: "system",
-                        message: `${data.username} stopped screen sharing`
-                    }, true);
-                }
             }
         };
 
@@ -1105,7 +621,6 @@
             updateStatus(false, 'Disconnected');
             log({ type: "system", message: "Disconnected from server" }, true);
             clearInterval(userActivityTimeout);
-            endCall();
         };
 
         ws.onerror = (err) => {
@@ -1198,7 +713,6 @@
             document.getElementById('msg').focus();
             initEmojiPicker();
             initMobileSidebar();
-            initVideoCall();
         });
 
         // Track page visibility to detect when users leave

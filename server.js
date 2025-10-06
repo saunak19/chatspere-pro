@@ -173,32 +173,6 @@ wss.on("connection", (ws) => {
         // Update user activity
         console.log(`User activity: ${data.username}`);
       }
-
-      if (data.type === "videoCall") {
-        // Broadcast video call events to all other users
-        const username = clients.get(ws) || "Anonymous";
-        broadcast(
-          {
-            type: "videoCall",
-            action: data.action,
-            username: username,
-          },
-          ws
-        );
-      }
-
-      if (data.type === "screenShare") {
-        // Broadcast screen share events to all other users
-        const username = clients.get(ws) || "Anonymous";
-        broadcast(
-          {
-            type: "screenShare",
-            action: data.action,
-            username: username,
-          },
-          ws
-        );
-      }
     } catch (e) {
       console.error("Error parsing message", e);
     }
@@ -225,6 +199,7 @@ wss.on("connection", (ws) => {
   ws.on("error", (err) => console.error("Socket error:", err));
 });
 
-server.listen(PORT, "192.168.1.72", () => {
-  console.log(`ChatSphere Pro server running at http://192.168.1.72:${PORT}`);
+server.listen(PORT, () => {
+  console.log(`ChatSphere Pro server running on port ${PORT}`);
+  console.log(`Open http://localhost:${PORT} to access the application`);
 });
